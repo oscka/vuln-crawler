@@ -8,14 +8,16 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.File;
+
 @Component
 @RequiredArgsConstructor
-public class NvdProcessor implements ItemProcessor<String, NvdCveItemTest> {
+public class NvdFeedProcessor implements ItemProcessor<File, NvdCveItemTest> {
 
     private final ObjectMapper objectMapper;
 
     @Override
-    public NvdCveItemTest process(String item) throws Exception {
+    public NvdCveItemTest process(File item) throws Exception {
         JsonNode rootNode = objectMapper.readTree(item);
         JsonNode cveItems = rootNode.get("result").get("CVE_Items");
 

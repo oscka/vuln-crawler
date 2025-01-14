@@ -13,6 +13,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import java.io.File;
+
 @Slf4j
 @RequiredArgsConstructor
 @Configuration
@@ -29,13 +31,13 @@ public class JobConfiguration {
     }
 
     @Bean
-    public Step nvdCveStep(ItemReader<String> nvdFeedReader,
-                           ItemProcessor<String, NvdCveItemTest> nvdProcessor,
+    public Step nvdCveStep(ItemReader<File> nvdFeedReader,
+                           ItemProcessor<File, NvdCveItemTest> nvdFeedProcessor,
                            ItemWriter<NvdCveItemTest> nvdFeedWriter) {
         return new StepBuilder("nvdCveStep", jobRepository)
-                .<String, NvdCveItemTest>chunk(100, transactionManager)
+                .<File, NvdCveItemTest>chunk(100, transactionManager)
                 .reader(nvdFeedReader)
-                .processor(nvdProcessor)
+                .processor(nvdFeedProcessor)
                 .writer(nvdFeedWriter)
                 .build();
     }
