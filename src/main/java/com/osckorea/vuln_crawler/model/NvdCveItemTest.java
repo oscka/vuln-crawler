@@ -20,7 +20,30 @@ public class NvdCveItemTest {
     @Id
     private Long id;
 
+    @Column("cve_name")
+    private String cveName;
+
+    @Column("data_type")
+    private String dataType;
+
+    @Column("data_format")
+    private String dataFormat;
+
+    @Column("data_version")
+    private String dataVersion;
+
+    private String description;
+
+    @Column("impact_score")
+    private String impactScore;
+
+    @Column("impact_severity")
+    private String impactSeverity;
+
     @Column("nvd_json")
     private String nvdJson;
+
+    //OR AND 등의 조합으로 인해 조금 더 생각..
+//    private String cpe
 
 }

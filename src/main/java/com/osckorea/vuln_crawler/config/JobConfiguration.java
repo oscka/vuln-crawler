@@ -1,5 +1,7 @@
 package com.osckorea.vuln_crawler.config;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.osckorea.vuln_crawler.model.NvdCveItem;
 import com.osckorea.vuln_crawler.model.NvdCveItemTest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,11 +33,11 @@ public class JobConfiguration {
     }
 
     @Bean
-    public Step nvdCveStep(ItemReader<File> nvdFeedReader,
-                           ItemProcessor<File, NvdCveItemTest> nvdFeedProcessor,
-                           ItemWriter<NvdCveItemTest> nvdFeedWriter) {
+    public Step nvdCveStep(ItemReader<JsonNode> nvdFeedReader,
+                           ItemProcessor<JsonNode, NvdCveItem> nvdFeedProcessor,
+                           ItemWriter<NvdCveItem> nvdFeedWriter) {
         return new StepBuilder("nvdCveStep", jobRepository)
-                .<File, NvdCveItemTest>chunk(100, transactionManager)
+                .<JsonNode, NvdCveItem>chunk(500, transactionManager)
                 .reader(nvdFeedReader)
                 .processor(nvdFeedProcessor)
                 .writer(nvdFeedWriter)

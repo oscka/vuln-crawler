@@ -1,51 +1,104 @@
 package com.osckorea.vuln_crawler.step;
 
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Iterator;
 import java.util.List;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
 @Component
 @RequiredArgsConstructor
-public class NvdFeedReader implements ItemReader<File> {
+public class NvdFeedReader implements ItemReader<JsonNode> {
     private final RestTemplate restTemplate;
-
     private final String baseUrl = "https://nvd.nist.gov/feeds/json/cve/1.1/nvdcve-1.1-";
-//    private final List<String> years = Arrays.asList("2025", "2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015", "2014", "2013", "2012", "2011", "2010", "2009", "2008", "2007", "2006", "2005", "2004", "2003", "2002");
-    private final List<String> years = Arrays.asList("2025", "2024");
-
-    private int currentYearIndex = 0;
-
-    public int getYearsSize() {
-        return years.size();
-    }
+    private int currentYear = Calendar.getInstance().get(Calendar.YEAR);
+    private JsonParser jsonParser;
+    private Iterator<JsonNode> cveItemsIterator;
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    public File read() throws Exception {
-        if (currentYearIndex >= years.size()) {
-            return null;
+    public JsonNode read() throws Exception {
+        if (cveItemsIterator == null || !cveItemsIterator.hasNext()) {
+            if (!initializeNextFile()) {
+                return null; // 모든 파일 처리 완료
+            }
         }
 
-        String year = years.get(currentYearIndex);
-        String url = baseUrl + year + ".json.zip";
-        File zipFile = downloadFile(url);
-        File jsonFile = unzipFile(zipFile);
+        if (cveItemsIterator.hasNext()) {
+            return cveItemsIterator.next();
+        }
 
-        currentYearIndex++;
-        return jsonFile;
+        return null;
     }
 
-    // 파일 삭제 고려할 것
+    private boolean initializeNextFile() throws Exception {
+//        while (currentYear >= 2002) {
+        while (currentYear >= 2002) {
+            String url = baseUrl + currentYear + ".json.zip";
+            try {
+                File zipFile = downloadFile(url);
+                if (verifyDownloadWithRetry(zipFile)) {
+                    File jsonFile = unzipFile(zipFile);
+                    jsonParser = objectMapper.getFactory().createParser(jsonFile);
+                    JsonNode rootNode = objectMapper.readTree(jsonParser);
+                    cveItemsIterator = rootNode.get("CVE_Items").elements();
+                    currentYear--;
+                    return true;
+                }
+            } catch (HttpClientErrorException.NotFound e) {
+                currentYear--;
+            } catch (Exception e) {
+                throw new RuntimeException("파일 다운로드 또는 검증 중 오류 발생: " + e.getMessage());
+            } finally {
+                // 임시 파일 삭제 로직
+            }
+        }
+        return false;
+    }
+
+    private boolean verifyDownloadWithRetry(File file) throws InterruptedException {
+        int maxAttempts = 3;
+        int attempt = 0;
+        while (attempt < maxAttempts) {
+            if (verifyDownload(file)) {
+                return true;
+            }
+            attempt++;
+            if (attempt < maxAttempts) {
+                Thread.sleep(10000); // 10초 대기
+            }
+        }
+        throw new RuntimeException("파일 검증 실패: 3번의 시도 후에도 실패");
+    }
+
+    private boolean verifyDownload(File file) {
+        if (file.length() > 0) {
+            try (ZipFile zipFile = new ZipFile(file)) {
+                return true;
+            } catch (IOException e) {
+                System.out.println("파일 검증 n회 실패");
+                return false;
+            }
+        }
+        return false;
+    }
+
     private File downloadFile(String url) throws IOException {
         ResponseEntity<byte[]> response = restTemplate.getForEntity(url, byte[].class);
         File tempFile = File.createTempFile("nvd-", ".zip");
@@ -54,7 +107,6 @@ public class NvdFeedReader implements ItemReader<File> {
     }
 
     private File unzipFile(File zipFile) throws IOException {
-        System.out.println("압축 해제 시작");
         File outputDir = Files.createTempDirectory("nvd-json").toFile();
         try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile))) {
             ZipEntry entry;
@@ -69,6 +121,13 @@ public class NvdFeedReader implements ItemReader<File> {
                 }
             }
         }
+        return outputDir.listFiles()[0];
+    }
+}
+
+
+
+
 
 //        // 압축 해제된 JSON 파일의 첫 10줄 읽기
 //        File[] files = outputDir.listFiles();
@@ -86,8 +145,3 @@ public class NvdFeedReader implements ItemReader<File> {
 //                System.out.println("--------------------");
 //            }
 //        }
-
-        System.out.println("압축 해제 전부 끝");
-        return outputDir.listFiles()[0]; // 압축 해제된 JSON 파일 반환
-    }
-}

@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Configuration
-@EnableJdbcRepositories(basePackages = "com.osckorea.sbommanager.repository")
+@EnableJdbcRepositories(basePackages = "com.osckorea.vuln_crawler.repository")
 public class JdbcConfig extends AbstractJdbcConfiguration {
 
     @Override
