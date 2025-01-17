@@ -5,8 +5,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-
-@Table(name = "nvd_cve_item_test", schema = "test_schema")
+@Table(name = "mitre_cve_item", schema = "test_schema")
 @Getter
 //추후 유지보수 고려
 @Setter
@@ -15,7 +14,7 @@ import org.springframework.data.relational.core.mapping.Table;
 @NoArgsConstructor
 //추후 양방향 참조 고려할 것
 @ToString
-public class NvdCveItemTest {
+public class MitreCveItem {
 
     @Id
     private Long id;
@@ -23,25 +22,22 @@ public class NvdCveItemTest {
     @Column("cve_name")
     private String cveName;
 
-    @Column("data_type")
-    private String dataType;
-
-    @Column("data_format")
-    private String dataFormat;
-
-    @Column("data_version")
-    private String dataVersion;
-
     private String description;
 
-    @Column("impact_score")
-    private String impactScore;
+    @Column("problem_types")
+    private String problemTypes;
 
-    @Column("impact_severity")
-    private String impactSeverity;
+    @Column("base_score")
+    private String baseScore;
 
-    @Column("nvd_json")
-    private String nvdJson;
+    @Column("base_severity")
+    private String baseSeverity;
+
+    @Column("cve_json")
+    private String cveJson;
+
+    @Column("cve_adp_json")
+    private String cveAdpJson;
 
     //OR AND 등의 조합으로 인해 조금 더 생각..
 //    private String cpe

@@ -22,25 +22,19 @@ public class NvdCveItem {
     @Column("cve_name")
     private String cveName;
 
-    @Column("data_type")
-    private String dataType;
-
-    @Column("data_format")
-    private String dataFormat;
-
-    @Column("data_version")
-    private String dataVersion;
-
     private String description;
 
-    @Column("impact_score")
-    private String impactScore;
+    @Column("base_score")
+    private String baseScore;
 
-    @Column("impact_severity")
-    private String impactSeverity;
+    @Column("base_severity")
+    private String baseSeverity;
 
     @Column("nvd_json")
     private String nvdJson;
+
+    @Column("nvd_updated_json")
+    private String nvdUpdatedJson;
 
     //OR AND 등의 조합으로 인해 조금 더 생각..
 //    private String cpe

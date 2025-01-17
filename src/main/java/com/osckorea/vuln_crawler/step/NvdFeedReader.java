@@ -5,7 +5,9 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemReader;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -22,8 +24,10 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
+@Qualifier("nvdFeedReader")
 public class NvdFeedReader implements ItemReader<JsonNode> {
     private final RestTemplate restTemplate;
     private final String baseUrl = "https://nvd.nist.gov/feeds/json/cve/1.1/nvdcve-1.1-";
@@ -34,8 +38,19 @@ public class NvdFeedReader implements ItemReader<JsonNode> {
 
     @Override
     public JsonNode read() throws Exception {
+        log.info("==================Read Start==================");
+        // json 파일이 들어가있는 cveItemsIterator가 비어있을때
         if (cveItemsIterator == null || !cveItemsIterator.hasNext()) {
+            // 가져올 수 있는 연간 nvd json 파일이 없을때
             if (!initializeNextFile()) {
+                log.info("==================Maybe This???? ==================");
+
+                // test code for restart job
+                this.currentYear = Calendar.getInstance().get(Calendar.YEAR);
+                this.jsonParser = null;
+                this.cveItemsIterator = null;
+                this.objectMapper = new ObjectMapper();
+
                 return null; // 모든 파일 처리 완료
             }
         }
@@ -49,7 +64,7 @@ public class NvdFeedReader implements ItemReader<JsonNode> {
 
     private boolean initializeNextFile() throws Exception {
 //        while (currentYear >= 2002) {
-        while (currentYear >= 2002) {
+        while (currentYear >= 2025) {
             String url = baseUrl + currentYear + ".json.zip";
             try {
                 File zipFile = downloadFile(url);
