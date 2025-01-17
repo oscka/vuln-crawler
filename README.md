@@ -5,6 +5,7 @@
 > 이 프로젝트는 NVD(National Vulnerability Database)와 Mitre의 CVE(Common Vulnerabilities and Exposures) 취약점 정보를 로컬 데이터베이스에 저장하고 업데이트하기 위한 Spring Batch 기반 애플리케이션입니다. 이는 추후 SBOM(Software Bill of Materials)과 연계하여 취약점 정보를 효율적으로 관리하고 조회하기 위한 기반을 제공합니다.
 
 
+
 ## 주요 특징
 - Spring Batch를 사용한 대용량 데이터 처리
 - NVD와 Mitre CVE 데이터의 초기 로딩 및 주기적 업데이트
@@ -12,7 +13,9 @@
 - PostgreSQL 데이터베이스를 사용한 데이터 저장
 
 
+
 ## Spring Batch란?
+
 
 #### 이 프로젝트는 Spring Batch의 Chunk 처리 방식을 사용합니다. Chunk 방식은 대용량 데이터를 처리할 때 메모리 사용을 최적화하고 성능을 향상시킵니다.
 Chunk vs Tasklet:
@@ -39,20 +42,30 @@ Chunk vs Tasklet:
 
 ## 데이터 처리
 
+
 #### 초기 데이터 설정
 1. NVD와 Mitre에서 제공하는 데이터 피드를 다운로드합니다.
-2. 압축을 해제하고 JSON 파싱을 수행합니다.
-3. 500개 단위의 chunk로 데이터를 처리하여 데이터베이스에 저장합니다.
+   - 공식 데이터 피드 링크
+   - NVD : https://nvd.nist.gov/vuln/data-feeds
+   - Mitre(CVE) : https://github.com/CVEProject/cvelistV5 , https://www.cve.org/Downloads
+3. 압축을 해제하고 JSON 파싱을 수행합니다.
+4. 500개 단위의 chunk로 데이터를 처리하여 데이터베이스에 저장합니다.
+
 
 #### 취약점 정보 업데이트
 1. NVD: 특정 기간의 CVE 변경 이력과 상세 내용을 조회하는 API를 사용하여 데이터를 업데이트합니다.
-2. Mitre: 초기 데이터 설정과 동일한 방식으로 전체 데이터를 다시 로드하여 업데이트합니다.
+    - 공식 API Docs : https://nvd.nist.gov/developers/vulnerabilities
+3. Mitre: 초기 데이터 설정과 동일한 방식으로 전체 데이터를 다시 로드하여 업데이트합니다.
+    - 공식 API Docs : https://cveawg.mitre.org/api-docs/
+
 
 > 참고: Mitre의 경우 공식 대부분의 API 사용에 제한이 있고(API 키 발급 자격 조건이 CNA에 속해있거나 해야함), 제한되지 않은 API를 사용해 업데이트를 수행하더라도 
-> Mitre에서 운영하는 사이트가 아닌 외부 사이트를 이용해서 업데이트 정보를 받아와야 하거나 기존 데이터 피드에서 전체 CVE 리스트를 다운 후 변경 json만 추출해야함으로 초기 데이터 세팅 방법이랑 큰 차이가 없어
+> Mitre에서 운영하는 사이트가 아닌 외부 사이트 (https://cassandra.cerias.purdue.edu/CVE_changes/) 를 이용해서 업데이트 정보를 받아와야 하거나 기존 데이터 피드에서 전체 CVE 리스트를 다운 후 변경 json만 추출해야함으로 초기 데이터 세팅 방법이랑 큰 차이가 없어
 > 데이터 피드를 직접 다운로드하는 방식을 채택했습니다. 이를 위해 commons-io:commons-io:2.11.0 라이브러리를 사용하여 재귀적 파일 탐색을 수행합니다.
 
+
 ## 데이터베이스 구조
+
 
 > PostgreSQL을 사용하며, Spring Data JDBC로 데이터베이스를 관리합니다.
 > <br>
@@ -60,7 +73,10 @@ Chunk vs Tasklet:
 > <br>
 > https://github.com/oscka/SBOM-Manager/blob/develop/README.md
 
+
 #### 테이블 스키마
+
+
 ```
 CREATE TABLE test_schema.nvd_cve_item (
     id SERIAL PRIMARY KEY,
