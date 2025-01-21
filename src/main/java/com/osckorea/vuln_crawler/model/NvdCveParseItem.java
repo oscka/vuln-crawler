@@ -5,7 +5,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-@Table(name = "nvd_cve_item", schema = "test_schema")
+@Table(name = "nvd_cve_parse_item", schema = "test_schema")
 @Getter
 //추후 유지보수 고려
 @Setter
@@ -14,8 +14,7 @@ import org.springframework.data.relational.core.mapping.Table;
 @NoArgsConstructor
 //추후 양방향 참조 고려할 것
 @ToString
-public class NvdCveItem {
-
+public class NvdCveParseItem {
     @Id
     private Long id;
 
@@ -24,16 +23,19 @@ public class NvdCveItem {
 
     private String description;
 
-    @Column("base_score")
-    private String baseScore;
+    @Column("problem_type")
+    private String problemType;
 
-    @Column("base_severity")
-    private String baseSeverity;
+    @Column("references_json")
+    private String referencesJson;
 
-    @Column("nvd_json")
-    private String nvdJson;
+    @Column("nvd_conf_json")
+    private String nvdConfJson;
 
-    @Column("nvd_updated_json")
-    private String nvdUpdatedJson;
+    @Column("impact_json")
+    private String impactJson;
+
+    @Column("reference_site")
+    private String referenceSite;
 
 }

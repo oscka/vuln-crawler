@@ -23,6 +23,8 @@ public class BatchController {
     private final Job nvdCveUpdateJob;
     @Qualifier("nvdCveJob")
     private final Job nvdCveJob;
+    @Qualifier("nvdCveParseJob")
+    private final Job nvdCveParseJob;
     @Qualifier("mitreCveJob")
     private final Job mitreCveJob;
     @Qualifier("mitreCveUpdateJob")
@@ -48,6 +50,19 @@ public class BatchController {
                     .addLong("timestamp", System.currentTimeMillis()) // 고유한 파라미터 (job 재실행을 위함)
                     .toJobParameters();
             JobExecution jobExecution = jobLauncher.run(nvdCveUpdateJob, jobParameters);
+            return ResponseEntity.ok(jobExecution.getStatus().name());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/nvd-parse")
+    public ResponseEntity<String> runNvdCveParseJob() {
+        try {
+            JobParameters jobParameters = new JobParametersBuilder()
+                    .addLong("timestamp", System.currentTimeMillis()) // 고유한 파라미터 (job 재실행을 위함)
+                    .toJobParameters();
+            JobExecution jobExecution = jobLauncher.run(nvdCveParseJob, jobParameters);
             return ResponseEntity.ok(jobExecution.getStatus().name());
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(e.getMessage());

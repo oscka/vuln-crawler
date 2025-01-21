@@ -3,6 +3,7 @@ package com.osckorea.vuln_crawler.config;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.osckorea.vuln_crawler.model.MitreCveItem;
 import com.osckorea.vuln_crawler.model.NvdCveItem;
+import com.osckorea.vuln_crawler.model.NvdCveParseItem;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -44,6 +45,15 @@ public class JobConfiguration {
     }
 
     @Bean
+    @Qualifier("nvdCveParseJob")
+    public Job nvdCveParsedJob(@Qualifier("nvdCveParseStep") Step nvdCveParseStep) {
+        return new JobBuilder("nvdCveParseJob", jobRepository)
+                .incrementer(new RunIdIncrementer()) //job 재실행 가능
+                .start(nvdCveParseStep)
+                .build();
+    }
+
+    @Bean
     @Qualifier("mitreCveJob")
     public Job mitreCveJob(@Qualifier("mitreCveStep") Step mitreCveStep) {
         return new JobBuilder("mitreCveJob", jobRepository)
@@ -71,6 +81,19 @@ public class JobConfiguration {
                 .reader(nvdFeedReader)
                 .processor(nvdFeedProcessor)
                 .writer(nvdFeedWriter)
+                .build();
+    }
+
+    @Bean
+    @Qualifier("nvdCveParseStep")
+    public Step nvdCveParseStep(@Qualifier("nvdCveParseReader") ItemReader<JsonNode> nvdCveParseReader,
+                           @Qualifier("nvdCveParseProcessor") ItemProcessor<JsonNode, NvdCveParseItem> nvdCveParseProcessor,
+                           @Qualifier("nvdCveParseWriter") ItemWriter<NvdCveParseItem> nvdCveParseWriter) {
+        return new StepBuilder("nvdCveParseStep", jobRepository)
+                .<JsonNode, NvdCveParseItem>chunk(500, transactionManager)
+                .reader(nvdCveParseReader)
+                .processor(nvdCveParseProcessor)
+                .writer(nvdCveParseWriter)
                 .build();
     }
 

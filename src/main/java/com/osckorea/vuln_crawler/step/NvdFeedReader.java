@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
@@ -16,10 +15,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Iterator;
-import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
@@ -63,8 +60,8 @@ public class NvdFeedReader implements ItemReader<JsonNode> {
     }
 
     private boolean initializeNextFile() throws Exception {
-//        while (currentYear >= 2002) {
-        while (currentYear >= 2025) {
+        while (currentYear >= 2002) {
+//        while (currentYear >= 2025) {
             String url = baseUrl + currentYear + ".json.zip";
             try {
                 File zipFile = downloadFile(url);
