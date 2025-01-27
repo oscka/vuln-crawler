@@ -38,7 +38,7 @@ public class NvdCveParseProcessor implements ItemProcessor<JsonNode, NvdCveParse
         item.setReferencesJson(jsonNode.path("cve").path("references").toString());
 
         // NVD Configuration JSON
-        item.setNvdConfJson(jsonNode.path("configurations").toString());
+        item.setNvdConfJson(jsonNode.path("configurations").path("nodes").toString());
 
         // Impact JSON
         item.setImpactJson(jsonNode.path("impact").toString());
